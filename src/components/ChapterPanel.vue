@@ -32,21 +32,16 @@
 
       <section class="ch-section">
         <h2 class="section-label">Resumo</h2>
-        <p class="ch-summary">{{ chapter.summary }}</p>
+        <div class="ch-summary">
+          <p v-for="(para, i) in chapter.summary.split('\n\n')" :key="i">{{ para }}</p>
+        </div>
       </section>
 
       <section class="ch-section">
         <h2 class="section-label">Ideias-chave</h2>
-        <p class="ch-hint">Clique para destacar as mais importantes para você</p>
         <ul class="ideas-list">
-          <li
-            v-for="idea in chapter.keyIdeas"
-            :key="idea"
-            class="idea-item"
-            :class="{ highlighted: isHighlighted(idea) }"
-            @click="toggleHighlight(idea)"
-          >
-            <span class="idea-dot">{{ isHighlighted(idea) ? '◆' : '◇' }}</span>
+          <li v-for="idea in chapter.keyIdeas" :key="idea" class="idea-item">
+            <span class="idea-dot">—</span>
             <span>{{ idea }}</span>
           </li>
         </ul>
@@ -89,29 +84,17 @@
 <script setup>
 import { computed } from 'vue'
 import { allChapters, bookData } from '../data/book.js'
-import { useNotes } from '../stores/notes.js'
 
 const props = defineProps({ chapterId: Number })
 const emit = defineEmits(['prev', 'next'])
 
-const { getNote, toggleHighlight: storeToggle } = useNotes()
-
 const chapter = computed(() => allChapters.find((c) => c.id === props.chapterId))
 const part = computed(() => bookData.parts.find((p) => p.id === chapter.value?.part))
-const note = computed(() => getNote(props.chapterId))
 
 const chapterIndex = computed(() => allChapters.findIndex((c) => c.id === props.chapterId))
 const total = allChapters.length
 const prevChapter = computed(() => allChapters[chapterIndex.value - 1] || null)
 const nextChapter = computed(() => allChapters[chapterIndex.value + 1] || null)
-
-function isHighlighted(idea) {
-  return (note.value.highlights || []).includes(idea)
-}
-
-function toggleHighlight(idea) {
-  storeToggle(props.chapterId, idea)
-}
 </script>
 
 <style scoped>
@@ -239,58 +222,38 @@ function toggleHighlight(idea) {
 }
 
 .ch-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ch-summary p {
   font-size: 17px;
   line-height: 1.85;
   color: var(--ink-soft);
 }
 
 /* ── Ideias-chave ───────────────────────── */
-.ch-hint {
-  font-size: 13px;
-  color: var(--ink-faint);
-  font-style: italic;
-  margin-bottom: 14px;
-}
-
 .ideas-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .idea-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 18px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: background var(--transition), border-color var(--transition), transform var(--transition);
-  font-size: 16px;
+  font-size: 17px;
   color: var(--ink-soft);
-  line-height: 1.5;
-  user-select: none;
-}
-
-.idea-item:hover {
-  background: var(--cream-dark);
-  transform: translateX(2px);
-}
-
-.idea-item.highlighted {
-  background: color-mix(in srgb, var(--ch-color) 8%, white);
-  border-color: color-mix(in srgb, var(--ch-color) 35%, var(--border));
-  color: var(--ink);
-  font-weight: 500;
+  line-height: 1.85;
 }
 
 .idea-dot {
-  color: var(--ch-color);
+  color: var(--ink-faint);
   flex-shrink: 0;
-  font-size: 12px;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 /* ── Insight ────────────────────────────── */
